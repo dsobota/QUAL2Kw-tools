@@ -70,97 +70,7 @@ Q2Kw.df <- Q2Kw.df[!sapply(Q2Kw.df, function(x) all(x == ""))]
 names(Q2Kw.df) <- grab.nm
 
 # Extract average grab sample data for assessment of fit
-Grab.fit.pm.avg <- subset(Q2Kw.df, select = c("Reach", "Fast CBOD", "Organic N", "NH4-N", "NO3+NO2-N", "Organic P", "Inorganic P", "pH"))
-
-# Need to pull out Min pH----
-Min.grab.loc <- grep("Daily minimum water quality summary for main channel", Q2Kw.output)[1] #First occurence is the target line
-Min.grab.nm.loc <- Min.grab.loc + 1
-Min.grab.sites <- c(Min.grab.loc + 8, Min.grab.loc + 9, Min.grab.loc + 11) # Need to manually set based on site locations
-
-Min.grab.data <- Q2Kw.output[Min.grab.sites]
-
-Q2Kw.list <- list()
-
-# Seperate data on at least two spaces then create data frame using rbind
-for (y in 1:length(Min.grab.data)) {
-  Q2Kw.list[[y]] <- as.data.frame(strsplit(Min.grab.data[y], split = "  "))
-  names(Q2Kw.list[[y]]) <- y
-  Q2Kw.list[[y]] <- t(Q2Kw.list[[y]])
-}
-
-# Get names of columns
-Min.grab.nm <- as.data.frame(strsplit(Q2Kw.output[Min.grab.nm.loc], split = "  "))
-names(Min.grab.nm) <- "Parameter.nm"
-Min.grab.nm <- Min.grab.nm[!apply(Min.grab.nm == "", 1, all),]
-grab.nm <- paste(Min.grab.nm)
-grab.nm <- sub(" ", "", grab.nm)
-
-# Get rid of blanks
-Min.grab.nm <- Min.grab.nm[!sapply(Min.grab.nm, function(x) all(x == ""))]
-
-# Set blank data frame
-Q2Kw.df <- data.frame(stringsAsFactors = F)
-
-# Build dataframe with rbind fill so that empty cells don't repeat
-for (z in 1:length(Q2Kw.list)) {
-  Q2Kw.df <- rbind(Q2Kw.df, as.data.frame(Q2Kw.list[[z]], 
-                                              stringsAsFactors = F))
-}
-
-# Get rid of blanks
-Q2Kw.df <- Q2Kw.df[!sapply(Q2Kw.df, function(x) all(x == ""))]
-
-# Give columns the appropriate names
-names(Q2Kw.df) <- grab.nm
-
-# Extract Minimum grab sample data for assessment of fit
-Grab.fit.pm.Min <- subset(Q2Kw.df, select = c("Reach", "pH"))
-names(Grab.fit.pm.Min) <- c("Reach", "Min pH")
-
-# Need to pull out Max pH----
-Max.grab.loc <- grep("Daily maximum water quality summary for main channel", Q2Kw.output)[1] #First occurence is the target line
-Max.grab.nm.loc <- Max.grab.loc + 1
-Max.grab.sites <- c(Max.grab.loc + 8, Max.grab.loc + 9, Max.grab.loc + 11) # Need to manually set based on site locations
-
-Max.grab.data <- Q2Kw.output[Max.grab.sites]
-
-Q2Kw.list <- list()
-
-# Seperate data on at least two spaces then create data frame using rbind
-for (y in 1:length(Max.grab.data)) {
-  Q2Kw.list[[y]] <- as.data.frame(strsplit(Max.grab.data[y], split = "  "))
-  names(Q2Kw.list[[y]]) <- y
-  Q2Kw.list[[y]] <- t(Q2Kw.list[[y]])
-}
-
-# Get names of columns
-Max.grab.nm <- as.data.frame(strsplit(Q2Kw.output[Max.grab.nm.loc], split = "  "))
-names(Max.grab.nm) <- "Parameter.nm"
-Max.grab.nm <- Max.grab.nm[!apply(Max.grab.nm == "", 1, all),]
-grab.nm <- paste(Max.grab.nm)
-grab.nm <- sub(" ", "", grab.nm)
-
-# Get rid of blanks
-Max.grab.nm <- Max.grab.nm[!sapply(Max.grab.nm, function(x) all(x == ""))]
-
-# Set blank data frame
-Q2Kw.df <- data.frame(stringsAsFactors = F)
-
-# Build dataframe with rbind fill so that empty cells don't repeat
-for (z in 1:length(Q2Kw.list)) {
-  Q2Kw.df <- rbind(Q2Kw.df, as.data.frame(Q2Kw.list[[z]], 
-                                              stringsAsFactors = F))
-}
-
-# Get rid of blanks
-Q2Kw.df <- Q2Kw.df[!sapply(Q2Kw.df, function(x) all(x == ""))]
-
-# Give columns the appropriate names
-names(Q2Kw.df) <- grab.nm
-
-# Extract Maximum grab sample data for assessment of fit
-Grab.fit.pm.Max <- subset(Q2Kw.df, select = c("Reach", "pH"))
-names(Grab.fit.pm.Max) <- c("Reach", "Max pH")
+Grab.fit.pm.avg <- subset(Q2Kw.df, select = c("Reach", "Fast CBOD", "Organic N", "NH4-N", "NO3+NO2-N", "Organic P", "Inorganic P"))
 
 # Extracting temporal data for average, minimum, and maximum temperature, dissolved oxygen, and pH----
 Cont.loc <- grep("Diel water quality in the main channel", Q2Kw.output)[1] #First occurence is the target line
@@ -224,38 +134,97 @@ Cont.fit.pm$"pH" <- as.numeric(Cont.fit.pm$"pH")
 
 # Insert a factor for hour
 Cont.fit.pm$hour <- trunc(Cont.fit.pm$"Time") # Truncates to hour for summary
-tapply(Cont.fit.pm$"Dissolved Oxygen", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), mean)
 
-# Compile all data into one flat data frame and write out to flat text file----
+# Make Hour a two digit integers
+Cont.fit.pm$hour <- sprintf("%02d", as.integer(Cont.fit.pm$hour)) # 
+
+# Summaries of statistics for hourly data
+# DO first
+Mean.DO <- aggregate(Cont.fit.pm$"Dissolved Oxygen", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), mean, na.rm = T) # Mean data
+Mean.DO$pm <- "doave"
+names(Mean.DO) <- c("Reach", "Hour", "Value", "Parameter")
+
+Min.DO <- aggregate(Cont.fit.pm$"Dissolved Oxygen", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), min, na.rm = T) # Min data
+Min.DO$pm <- "domin"
+names(Min.DO) <- c("Reach", "Hour", "Value", "Parameter")
+
+Max.DO <- aggregate(Cont.fit.pm$"Dissolved Oxygen", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), max, na.rm = T) # Max data
+Max.DO$pm <- "domax"
+names(Max.DO) <- c("Reach", "Hour", "Value", "Parameter")
+
+DO.df <- rbind(Mean.DO, Min.DO, Max.DO)
+
+# Temperature
+Mean.temp <- aggregate(Cont.fit.pm$"Water temperature", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), mean, na.rm = T) # Mean data
+Mean.temp$pm <- "tempave"
+names(Mean.temp) <- c("Reach", "Hour", "Value", "Parameter")
+
+Min.temp <- aggregate(Cont.fit.pm$"Water temperature", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), min, na.rm = T) # Min data
+Min.temp$pm <- "tempmin"
+names(Min.temp) <- c("Reach", "Hour", "Value", "Parameter")
+
+Max.temp <- aggregate(Cont.fit.pm$"Water temperature", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), max, na.rm = T) # Max data
+Max.temp$pm <- "tempmax"
+names(Max.temp) <- c("Reach", "Hour", "Value", "Parameter")
+
+temp.df <- rbind(Mean.temp, Min.temp, Max.temp)
+
+# pH
+Mean.pH <- aggregate(Cont.fit.pm$"pH", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), mean, na.rm = T) # Mean data
+Mean.pH$pm <- "pHave"
+names(Mean.pH) <- c("Reach", "Hour", "Value", "Parameter")
+
+Min.pH <- aggregate(Cont.fit.pm$"pH", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), min, na.rm = T) # Min data
+Min.pH$pm <- "pHmin"
+names(Min.pH) <- c("Reach", "Hour", "Value", "Parameter")
+
+Max.pH <- aggregate(Cont.fit.pm$"pH", list(Cont.fit.pm$Reach, Cont.fit.pm$hour), max, na.rm = T) # Max data
+Max.pH$pm <- "pHmax"
+names(Max.pH) <- c("Reach", "Hour", "Value", "Parameter")
+
+pH.df <- rbind(Mean.pH, Min.pH, Max.pH)
+
+# Compiled data frame
+hourly.df <- rbind(DO.df, temp.df, pH.df)
+
+# Get rid of extra space in Reach column
+hourly.df$Reach <- gsub(" ", "", hourly.df$Reach)
+
+# Make Reach a two digit integer
+hourly.df$Reach <- sprintf("%02d", as.integer(hourly.df$Reach))
+
+# Combine parameters to make seperate result tag
+hourly.df$Combined.nm <- paste0(hourly.df$Parameter, hourly.df$Reach, hourly.df$Hour)
+
+# Make Combined.nm 14 spaces wide
+hourly.df$Combined.nm <- sprintf("%-14s", hourly.df$Combined.nm)
+
+# Make Value field display scientific notation
+hourly.df$Value <- formatC(as.numeric(hourly.df$Value), format = "e", digits = 8)
+
+# Make Value 14 spaces wide
+hourly.df$Value <- sprintf("%-14s", hourly.df$Value)
+
+# Compile grab data into one flat data frame----
 # Make dataframe first
-Q2Kw.merge <- purrr::reduce(list(Cont.fit.pm, Grab.fit.pm.avg, Grab.fit.pm.Max, Grab.fit.pm.Min), merge, by = "Reach")
-Q2Kw.almost.flat.out <- tidyr::gather(Q2Kw.merge, Parameter, Value, -Reach, -Time)
-Q2Kw.flat.out <- dplyr::distinct(Q2Kw.almost.flat.out, Value, .keep_all = T)
+Q2Kw.flat.out <- tidyr::gather(Grab.fit.pm.avg, Parameter, Value, -Reach)
 
 # Sub in requested names
-Q2Kw.flat.out$Parameter <- gsub("Water temperature", "temp", Q2Kw.flat.out$Parameter)
-Q2Kw.flat.out$Parameter <- gsub("Dissolved Oxygen", "do", Q2Kw.flat.out$Parameter)
 Q2Kw.flat.out$Parameter <- gsub("Fast CBOD", "fcob", Q2Kw.flat.out$Parameter)
 Q2Kw.flat.out$Parameter <- gsub("Organic N", "orgn", Q2Kw.flat.out$Parameter)
 Q2Kw.flat.out$Parameter <- gsub("NH4-N", "nh4", Q2Kw.flat.out$Parameter)
 Q2Kw.flat.out$Parameter <- gsub("NO3+NO2-N", "no3", Q2Kw.flat.out$Parameter, fixed = T) #Plus sign is a special character; fixed needs to be true
 Q2Kw.flat.out$Parameter <- gsub("Organic P", "orgp", Q2Kw.flat.out$Parameter)
 Q2Kw.flat.out$Parameter <- gsub("Inorganic P", "inorgp", Q2Kw.flat.out$Parameter)
-Q2Kw.flat.out$Parameter <- gsub("pH", "pHave", Q2Kw.flat.out$Parameter)
-Q2Kw.flat.out$Parameter <- gsub("Min pHave", "pHmin", Q2Kw.flat.out$Parameter) # Note that pHave has to be used here
-Q2Kw.flat.out$Parameter <- gsub("Max pHave", "pHmax", Q2Kw.flat.out$Parameter)  
 
 # Get rid of extra space in Reach column
 Q2Kw.flat.out$Reach <- gsub(" ", "", Q2Kw.flat.out$Reach)
 
-# Make time (hour) and Reach two digit integers
+# Make Reach two digit integers
 Q2Kw.flat.out$Reach <- sprintf("%02d", as.integer(Q2Kw.flat.out$Reach))
-Q2Kw.flat.out$Time <- sprintf("%02d", as.integer(Q2Kw.flat.out$Time))
 
 # Combine parameters to make seperate result tag
-Q2Kw.flat.out$Combined.nm <- if_else(Q2Kw.flat.out$Parameter == "temp" | Q2Kw.flat.out$Parameter == "do",
-                                     paste0(Q2Kw.flat.out$Parameter, Q2Kw.flat.out$Reach, Q2Kw.flat.out$Time),
-                                     paste0(Q2Kw.flat.out$Parameter, Q2Kw.flat.out$Reach))
+Q2Kw.flat.out$Combined.nm <- paste0(Q2Kw.flat.out$Parameter, Q2Kw.flat.out$Reach)
 
 # Make Combined.nm 14 spaces wide
 Q2Kw.flat.out$Combined.nm <- sprintf("%-14s", Q2Kw.flat.out$Combined.nm)
@@ -266,7 +235,10 @@ Q2Kw.flat.out$Value <- formatC(as.numeric(Q2Kw.flat.out$Value), format = "e", di
 # Make Value 14 spaces wide
 Q2Kw.flat.out$Value <- sprintf("%-14s", Q2Kw.flat.out$Value)
 
-# Write out flat text file
+# Make final data frames and write out to flat text file----
 Q2Kw.flat <- subset(Q2Kw.flat.out, select = c("Combined.nm", "Value"))
-write.table(Q2Kw.flat, "\\\\deqhq1\\tmdl\\TMDL_WR\\MidCoast\\Models\\Dissolved Oxygen\\PEST-Synthetic-data\\Dan-edits\\Q2Kw_output.txt", 
+hourly.flat <- subset(hourly.df, select =c("Combined.nm", "Value"))
+
+# Write out flat text file
+write.table(rbind(Q2Kw.flat, hourly.flat), "\\\\deqhq1\\tmdl\\TMDL_WR\\MidCoast\\Models\\Dissolved Oxygen\\PEST-Synthetic-data\\Dan-edits\\Q2Kw_output.txt", 
             row.names = F, col.names = F, quote = F, sep = "") # Change path as needed
