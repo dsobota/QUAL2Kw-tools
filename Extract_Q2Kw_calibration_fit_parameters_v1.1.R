@@ -193,6 +193,8 @@ hourly.df$Reach <- gsub(" ", "", hourly.df$Reach)
 # Make Reach a two digit integer
 hourly.df$Reach <- sprintf("%02d", as.integer(hourly.df$Reach))
 
+# Also need to make sure that 
+
 # Combine parameters to make seperate result tag
 hourly.df$Combined.nm <- paste0(hourly.df$Parameter, hourly.df$Reach, hourly.df$Hour)
 
