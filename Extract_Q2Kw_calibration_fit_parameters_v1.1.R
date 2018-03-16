@@ -135,6 +135,9 @@ Cont.fit.pm$"pH" <- as.numeric(Cont.fit.pm$"pH")
 # Insert a factor for hour
 Cont.fit.pm$hour <- trunc(Cont.fit.pm$"Time") # Truncates to hour for summary
 
+# Also need to make sure that midnight gets grouped with the 1 am class
+Cont.fit.pm$hour <- ifelse(Cont.fit.pm$hour == 24, 0, Cont.fit.pm$hour)
+
 # Make Hour a two digit integers
 Cont.fit.pm$hour <- sprintf("%02d", as.integer(Cont.fit.pm$hour)) # 
 
@@ -192,8 +195,6 @@ hourly.df$Reach <- gsub(" ", "", hourly.df$Reach)
 
 # Make Reach a two digit integer
 hourly.df$Reach <- sprintf("%02d", as.integer(hourly.df$Reach))
-
-# Also need to make sure that 
 
 # Combine parameters to make seperate result tag
 hourly.df$Combined.nm <- paste0(hourly.df$Parameter, hourly.df$Reach, hourly.df$Hour)
