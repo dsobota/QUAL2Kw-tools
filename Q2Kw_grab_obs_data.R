@@ -65,7 +65,7 @@ mean.inorgp.obs$Parameter <- "inorgp"
 mean.inorgp.obs$Reach <- c(8, 6, 5) # Need to manually assign reaches
 
 # bind all data frames together
-grab.obs <- rbind(mean.fcob.obs, mean.orgn.obs, mean.nh4.obs, mean.no3.obs, mean.orgn.obs, mean.orgp.obs, mean.inorgp.obs)
+grab.obs <- rbind(mean.fcob.obs, mean.nh4.obs, mean.no3.obs, mean.orgn.obs, mean.orgp.obs, mean.inorgp.obs)
 names(grab.obs) <- c("Station_ID", "Value", "Parameter", "Reach")
 
 # Make a combined parameter name
