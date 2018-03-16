@@ -68,6 +68,9 @@ mean.inorgp.obs$Reach <- c(8, 6, 5) # Need to manually assign reaches
 grab.obs <- rbind(mean.fcob.obs, mean.nh4.obs, mean.no3.obs, mean.orgn.obs, mean.orgp.obs, mean.inorgp.obs)
 names(grab.obs) <- c("Station_ID", "Value", "Parameter", "Reach")
 
+# Force reach to display two digits
+grab.obs$Reach <- sprintf("%02d", grab.obs$Reach)
+
 # Make a combined parameter name
 grab.obs$Combined.nm <- paste0(grab.obs$Parameter, grab.obs$Reach)
 
