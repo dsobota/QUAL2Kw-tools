@@ -69,7 +69,7 @@ Q2Kw.df <- Q2Kw.df[!sapply(Q2Kw.df, function(x) all(x == ""))]
 
 # Give columns the appropriate names
 names(Q2Kw.df) <- Fl.nm
-Q2Kw.df$Reach <- c(6, 8)
+Q2Kw.df$Reach <- c(5, 8)
 
 # Extract average grab sample data for assessment of fit
 Flow.fit <- subset(Q2Kw.df, select = c("Reach", "Flow"))
